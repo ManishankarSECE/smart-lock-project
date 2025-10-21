@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Smart Lock — Professional Dashboard & Mobile QR Control</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: radial-gradient(circle at top right, #e0f2fe 0%, #bae6fd 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+    }
+    .container { max-width: 520px; width: 100%; background: linear-gradient(145deg, #f9fbff, #e3e8ff); border-radius: 20px;
+      padding: 40px 36px 48px 36px; border: 2px solid #3b82f6;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35), 0 10px 20px rgba(16, 64, 153, 0.2), inset 0 1px 4px rgba(255, 255, 255, 0.85);}
+    .container:hover { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5), 0 14px 30px rgba(16, 64, 153, 0.3), inset 0 1px 6px rgba(255, 255, 255, 0.95); }
+    h2 { font-weight: 700; font-size: 2.6rem; text-align: center; margin-bottom: 8px; color: #1e40af; user-select: text; letter-spacing: 0.04em; text-shadow: 0 1px 2px rgba(100, 116, 139, 0.3);}
+    p.subtitle { text-align: center; font-weight: 600; font-size: 1.1rem; color: #2563ebcc; margin-bottom: 32px; letter-spacing: 0.04em; }
+    .tabs { display: flex; gap: 14px; margin-bottom: 32px; background: #e0ecff; border-radius: 16px; box-shadow: inset 0 0 12px #a7c3ff; flex-wrap: wrap;}
+    .tab { flex: 1; padding: 16px 0; font-weight: 700; font-size: 1.12rem; text-align: center; cursor: pointer; color: #254eda; user-select: none; border-radius: 16px;
+      transition: all 0.3s ease; border: 2.5px solid transparent; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;}
+    .tab:hover { background-color: #dbe8ff; color: #1e3a8a; border-color: #a2c1ff; box-shadow: 0 3px 8px rgba(61, 93, 209, 0.4);}
+    .tab.active { background: linear-gradient(90deg, #2563eb, #3b82f6); color: #ffffff; border-color: #3b82f6; box-shadow: 0 6px 16px rgba(59, 130, 246, 0.60), 0 0 6px #3b82f6cc;}
+    .tabpane { display: none; animation: fadeIn 0.32s ease forwards;}
+    .tabpane.active { display: block; }
+    input { width: 100%; background: #f0f4ff; border: 2.5px solid transparent; border-radius: 14px; color: #1e293b; font-size: 1.15rem; padding: 16px 20px; margin-bottom: 24px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease; outline-offset: 2px; outline-color: transparent; box-shadow: inset 1px 1px 4px #d7e3ff;}
+    input::placeholder { color: #7a8ab8; font-weight: 600; letter-spacing: 0.03em; }
+    input:focus { border-color: #3b82f6; outline-color: #93c5fdcc; background: #e0eaff; box-shadow: 0 0 6px #3b82f6bb; color: #1e293b;}
+    button { width: 100%; padding: 16px 0; border-radius: 14px; font-size: 1.15rem; font-weight: 700; cursor: pointer; transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.1s ease;
+      border: none; user-select: none; display: flex; justify-content: center; align-items: center; gap: 12px; letter-spacing: 0.04em; box-shadow: 0 8px 15px rgba(43, 108, 255, 0.35);
+      color: #fff; text-shadow: 0 0 4px rgba(0, 0, 0, 0.15);}
+    button:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(30, 78, 255, 0.4);}
+    .btn-primary { background: linear-gradient(90deg, #2563eb, #3b82f6);}
+    .btn-primary:hover { background: linear-gradient(90deg, #3b82f6, #2563eb); box-shadow: 0 12px 26px rgba(43, 108, 255, 0.55);}
+    .btn-secondary { background: linear-gradient(90deg, #ef4444, #dc2626); box-shadow: 0 8px 15px rgba(239, 68, 68, 0.35);}
+    .btn-secondary:hover { background: linear-gradient(90deg, #dc2626, #ef4444); box-shadow: 0 12px 26px rgba(239, 68, 68, 0.55);}
+    .status { margin-top: 10px; font-weight: 700; min-height: 26px; text-align: center; color: #1e40af; user-select: text; letter-spacing: 0.02em; text-shadow: 0 0 2px rgba(58, 63, 127, 0.25);}
+    #centerPatternArea { margin: 0 auto 18px auto; width: 240px; height: 240px; position: relative; background: #f0f4ff; border-radius: 24px; box-shadow: 0 2px 10px #bddafe33; }
+    .pattern-dot { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: #e0f2fe; border: 3px solid #3b82f6; box-shadow: 0 1px 8px #60a5fa22; z-index: 2; transition: background 0.1s, border 0.18s;
+      left: 0; top: 0; transform: translate(-50%, -50%); pointer-events: all;}
+    .pattern-dot.active { background: #3b82f6; border-color: #1e40af; }
+    #centerPatternLines { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;}
+    .rowbtns { text-align:center; margin-top:16px; display: flex; gap:20px; justify-content:center;}
+    .rowbtns button {max-width: 200px;}
+
+    /* Dialog modal styles */
+    dialog {
+      border: none;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+      width: 320px;
+      font-family: 'Poppins', sans-serif;
+    }
+    dialog::backdrop {
+      background-color: rgba(0,0,0,0.4);
+    }
+    dialog menu {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    dialog menu button {
+      font-weight: 700;
+      padding: 6px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    dialog menu button[value="allow"] {
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      color: white;
+    }
+    dialog menu button[value="deny"] {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="container" role="main" aria-label="Smart Lock Professional Authentication Dashboard">
+  <h2>🔒 Smart Lock</h2>
+  <p class="subtitle">Login securely using  Email OTP, Center Pattern, Face Recognition, Voice Phrase, or QR Code.</p>
+
+  <nav class="tabs" role="tablist" aria-label="Authentication methods">
+   <!-- <div class="tab active" role="tab" tabindex="0" aria-selected="true" aria-controls="password" data-tab="password">Password</div>
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="pin" data-tab="pin">🔢PIN</div>-->
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="otp" data-tab="otp">📲OTP</div>
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="centerpattern" data-tab="centerpattern">🔲Pattern</div>
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="face" data-tab="face">🎥Face</div>
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="voice" data-tab="voice">🗣️Voice Phrase</div>
+    <div class="tab" role="tab" tabindex="-1" aria-selected="false" aria-controls="qr" data-tab="qr">📱QR Code</div>
+  </nav>
+
+  <!-- Password 
+  <section id="password" role="tabpanel" aria-labelledby="tab-password" class="tabpane active">
+    <input id="passwordInput" type="password" aria-label="Enter password" placeholder="Enter your password..👇" autocomplete="current-password"/>
+    <button type="button" onclick="auth('password')" class="btn-primary" aria-describedby="passwordMsg">Login</button>
+    <div id="passwordMsg" class="status" aria-live="polite" role="alert"></div>
+  </section>
+
+  
+  <section id="pin" role="tabpanel" aria-labelledby="tab-pin" class="tabpane" tabindex="0">
+    <input id="pinInput" type="password" aria-label="Enter PIN" placeholder="Enter your PIN" autocomplete="one-time-code"/>
+    <button type="button" onclick="auth('pin')" class="btn-primary" aria-describedby="pinMsg">Login</button>
+    <div id="pinMsg" class="status" aria-live="polite" role="alert"></div>
+  </section>-->
+
+  <!-- OTP -->
+  <section id="otp" role="tabpanel" aria-labelledby="tab-otp" class="tabpane" tabindex="0">
+    <button type="button" onclick="requestOtp()" class="btn-primary" style="margin-bottom:16px;" aria-describedby="otpMsg">Request OTP</button>
+    <input id="otpInput" type="text" aria-label="Enter OTP" placeholder="Enter the OTP sent to your email" inputmode="numeric" autocomplete="one-time-code"/>
+    <button type="button" onclick="auth('otp')" class="btn-primary" aria-describedby="otpMsg">Verify</button>
+    <div id="otpMsg" class="status" aria-live="polite" role="alert"></div>
+  </section>
+
+  <!-- Center-to-center Pattern Lock -->
+  <section id="centerpattern" role="tabpanel" aria-labelledby="tab-centerpattern" class="tabpane" tabindex="0" style="text-align:center;">
+    <div id="centerPatternArea">
+      <svg id="centerPatternLines"></svg>
+    </div>
+    <div id="centerPatternMsg" class="status" aria-live="polite"></div>
+    <div class="rowbtns">
+      <button class="btn-primary" id="centerPatReset">Reset</button>
+      <button class="btn-primary" id="centerPatSubmit">Login with Pattern</button>
+    </div>
+  </section>
+
+  <!-- Face Recognition -->
+  <section id="face" role="tabpanel" aria-labelledby="tab-face" class="tabpane" tabindex="0" style="text-align:center;">
+    <video id="face-video" autoplay muted playsinline></video>
+    <button type="button" id="faceLoginBtn" class="btn-primary" style="max-width:300px; margin: 0 auto;" aria-describedby="faceMsg">Login with Face</button>
+    <div id="faceMsg" class="status" aria-live="polite" role="alert" style="margin-top: 12px;"></div>
+  </section>
+
+  <!-- Voice Phrase -->
+  <section id="voice" role="tabpanel" aria-labelledby="tab-voice" class="tabpane" tabindex="0" style="text-align:center;">
+    <button id="voicePhraseBtn" type="button" aria-describedby="voicePhraseStatus" aria-live="polite" aria-atomic="true">
+      🎤 Speak Your Secret Phrase
+    </button>
+    <div id="voicePhraseStatus" class="status" role="alert" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <!-- QR Code -->
+  <section id="qr" role="tabpanel" aria-labelledby="tab-qr" class="tabpane" tabindex="0" style="text-align:center;">
+    <input id="qrName" type="text" aria-label="Enter your name" placeholder="Your Name" autocomplete="name" required/>
+    <input id="qrPhone" type="tel" aria-label="Enter your phone number" placeholder="Phone Number" autocomplete="tel" required/>
+    <button type="button" onclick="generateQrCode()" class="btn-primary" style="max-width:300px; margin: 0 auto; margin-bottom: 24px;">Generate QR Code</button>
+    <div id="qrMsg" class="status" aria-live="polite" role="alert"></div>
+  </section>
+
+  <section id="controls" style="display:none" aria-live="polite">
+    <div class="device-status" aria-atomic="true">Door Status: <span id="doorStatus">Unknown</span></div>
+    <div class="controls">
+      <button type="button" onclick="deviceAction('unlock')" class="btn-primary" aria-label="Unlock the door">🔓 Unlock</button>
+      <button type="button" onclick="deviceAction('close')" class="btn-secondary" aria-label="Lock the door">🔒 Lock</button>
+    </div>
+    <div id="controlMsg" class="status" aria-live="assertive" role="alert"></div>
+  </section>
+</div>
+
+<!-- Modal dialog for QR code email approval -->
+<dialog id="qrConfirmDialog" role="dialog" aria-modal="true" aria-labelledby="qrConfirmTitle" aria-describedby="qrConfirmDesc">
+  <form method="dialog" style="padding: 20px; width: 320px; font-family: 'Poppins', sans-serif;">
+    <h3 id="qrConfirmTitle" style="margin-top: 0;">Confirm QR Code Email</h3>
+    <p id="qrConfirmDesc">Generate QR code and send email for:</p>
+    <p id="qrConfirmDetails" style="font-weight: bold; margin-bottom: 1em;"></p>
+    <menu style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button value="deny" style="background: #ef4444; color: white; border:none; padding: 6px 18px; border-radius: 8px; cursor: pointer;">Deny</button>
+      <button id="qrConfirmAllowBtn" value="allow" style="background: linear-gradient(90deg, #2563eb, #3b82f6); color: white; border:none; padding: 6px 18px; border-radius: 8px; cursor: pointer;">Allow</button>
+    </menu>
+  </form>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+const setStatus = (id, msg) => { const el = $(id); if(el) el.textContent = msg; };
+
+// Speak "Wrong attempt" feedback
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.1;
+    window.speechSynthesis.speak(utter);
+  }
+}
+
+// Tab switching
+const tabs = document.querySelectorAll('.tab');
+const tabpanes = document.querySelectorAll('.tabpane');
+tabs.forEach((tab,i) => {
+  tab.addEventListener('click', () => activateTab(tab));
+  tab.addEventListener('keydown', e => {
+    let newIndex = i;
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      newIndex = (i+1) % tabs.length;
+      activateTab(tabs[newIndex]);
+      tabs[newIndex].focus();
+    }
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      newIndex = (i-1+tabs.length) % tabs.length;
+      activateTab(tabs[newIndex]);
+      tabs[newIndex].focus();
+    }
+  });
+});
+function activateTab(tab) {
+  tabs.forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.tabIndex = -1;
+  });
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+  tab.tabIndex = 0;
+  const selected = tab.dataset.tab;
+  tabpanes.forEach(p => p.classList.remove('active'));
+  $(selected).classList.add('active');
+  ['password','pin','otp','centerpattern','face','voice','qr'].forEach(m => {
+    const msg = $(m+'Msg') || $(m+'Status');
+    if(msg) msg.textContent = '';
+  });
+  if(selected==='face') startFaceVideo(); else stopFaceVideo();
+  if(selected==='centerpattern') centerResetPattern();
+}
+
+// QR code email confirmation modal logic
+let qrApprovalToken = null;
+let approvalInterval = null;
+
+async function generateQrCode() {
+  const name = document.getElementById('qrName').value.trim();
+  const phone = document.getElementById('qrPhone').value.trim();
+
+  if (!name || !phone) {
+    setStatus('qrMsg', 'Please enter your name and phone number.');
+    return;
+  }
+
+  setStatus('qrMsg', 'Request submitted. Please wait for admin approval.');
+
+  try {
+    const res = await fetch('/request_qr', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, phone})
+    });
+    const j = await res.json();
+    if (!j.ok) {
+      setStatus('qrMsg', j.error || 'Failed to submit request.');
+      return;
+    }
+    qrApprovalToken = j.token; // backend must return token
+    // Start polling every 5 seconds
+    approvalInterval = setInterval(checkApprovalStatus, 5000);
+  } catch (e) {
+    setStatus('qrMsg', 'Network error occurred.');
+  }
+}
+
+async function checkApprovalStatus() {
+  if (!qrApprovalToken) return;
+  try {
+    const res = await fetch(`/qr_status?token=${qrApprovalToken}`);
+    const j = await res.json();
+    if (!j.ok) {
+      clearInterval(approvalInterval);
+      setStatus('qrMsg', 'Error checking approval status.');
+      return;
+    }
+    if (j.status === 'approved') {
+      clearInterval(approvalInterval);
+      setStatus('qrMsg', 'Your QR code is approved and ready. Please scan it.');
+    } else if (j.status === 'denied') {
+      clearInterval(approvalInterval);
+      setStatus('qrMsg', 'Your QR code request was denied by admin.');
+    }
+    // else status pending - keep polling
+  } catch {
+    setStatus('qrMsg', 'Error checking approval status.');
+  }
+}
+
+
+
+// Center-to-center pattern lock
+const area = $('centerPatternArea');
+const svg = $('centerPatternLines');
+let dots = [], centerPattern = [], centerDrawing = false, lastIdx = null;
+function dotXY(idx) {
+  const off = 37, gridGap = 83, gridCnt = 3;
+  return {
+    x: off + gridGap * (idx % gridCnt),
+    y: off + gridGap * Math.floor(idx / gridCnt)
+  };
+}
+function setupDots() {
+  while (area.firstChild) area.removeChild(area.firstChild);
+  dots = [];
+  for (let i = 0; i < 9; i++) {
+    const coord = dotXY(i);
+    let dot = document.createElement('div');
+    dot.className = 'pattern-dot';
+    dot.style.left = coord.x + 'px';
+    dot.style.top = coord.y + 'px';
+    area.appendChild(dot);
+    dots.push(dot);
+  }
+  area.appendChild(svg);
+}
+function activateDot(idx) {
+  if (!centerPattern.includes(idx)) {
+    centerPattern.push(idx);
+    dots[idx].classList.add('active');
+    setStatus('centerPatternMsg','');
+  }
+}
+function resetPattern() {
+  centerPattern = [];
+  lastIdx = null;
+  dots.forEach(dot => dot.classList.remove('active'));
+  drawLines();
+  setStatus('centerPatternMsg','');
+}
+function drawLines() {
+  svg.innerHTML = '';
+  let pts = centerPattern.map(dotXY);
+  if (pts.length > 1) {
+    for(let i=0;i<pts.length-1;i++) {
+      let l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l.setAttribute("x1", pts[i].x);
+      l.setAttribute("y1", pts[i].y);
+      l.setAttribute("x2", pts[i+1].x);
+      l.setAttribute("y2", pts[i+1].y);
+      l.setAttribute("stroke", "#2563eb");
+      l.setAttribute("stroke-width", "6");
+      l.setAttribute("stroke-linecap", "round");
+      svg.appendChild(l);
+    }
+  }
+}
+function getDotIdxFromPos(x, y) {
+  for(let i=0;i<dots.length;i++) {
+    let rect = dots[i].getBoundingClientRect();
+    let cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
+    let dist = Math.sqrt((x-cx)**2 + (y-cy)**2);
+    if(dist<30) return i;
+  }
+  return null;
+}
+function pointerDown(e) {
+  e.preventDefault();
+  centerDrawing = true;
+  let x = e.touches ? e.touches[0].clientX : e.clientX;
+  let y = e.touches ? e.touches[0].clientY : e.clientY;
+  let idx = getDotIdxFromPos(x,y);
+  if(idx!==null) { activateDot(idx); lastIdx=idx; }
+}
+function pointerMove(e) {
+  if(!centerDrawing) return;
+  let x = e.touches ? e.touches[0].clientX : e.clientX;
+  let y = e.touches ? e.touches[0].clientY : e.clientY;
+  let idx = getDotIdxFromPos(x,y);
+  if(idx!==null && idx!==lastIdx && !centerPattern.includes(idx)) {
+    activateDot(idx); lastIdx=idx;
+  }
+  drawLines();
+}
+function pointerUp(){ centerDrawing=false; drawLines(); }
+function centerResetPattern(){ resetPattern(); }
+function centerSubmitPattern(){
+  if(centerPattern.length < 4){
+    setStatus('centerPatternMsg','Pattern must be at least 4 dots!');
+    speak("Wrong attempt");
+    return;
+  }
+  let patStr = centerPattern.map(n=>n+1).join('-');
+  setStatus('centerPatternMsg','Checking pattern...');
+  fetch('/auth', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({method:'centerpattern', value: patStr})
+  }).then(r=>r.json()).then(j=>{
+    if(j.ok){
+      activeToken = j.token; showControls();
+    }else{
+      setStatus('centerPatternMsg', j.error || "Authentication failed");
+      speak("Wrong attempt");
+    }
+  }).catch(()=>{setStatus('centerPatternMsg',"Network error"); speak("Wrong attempt");});
+}
+function centerSetupPattern() {
+  setupDots(); drawLines();
+  area.addEventListener('mousedown', pointerDown);
+  document.addEventListener('mousemove', pointerMove);
+  document.addEventListener('mouseup', pointerUp);
+  area.addEventListener('touchstart', pointerDown);
+  document.addEventListener('touchmove', pointerMove, {passive:false});
+  document.addEventListener('touchend', pointerUp);
+  svg.setAttribute("width",area.offsetWidth);
+  svg.setAttribute("height",area.offsetHeight);
+  $('centerPatReset').onclick = centerResetPattern;
+  $('centerPatSubmit').onclick = centerSubmitPattern;
+  resetPattern();
+}
+document.addEventListener('DOMContentLoaded', function(){
+  activateTab(tabs[0]);
+  centerSetupPattern();
+});
+// Password, PIN, OTP, VOICE authentication logic
+async function auth(method) {
+  let value = "";
+  
+  if(method === 'otp') value = $('otpInput').value.trim();
+  if(method === 'voice') value = speechLastPhrase?.trim() || "";
+  if(!value) {
+    setStatus(method + 'Msg', 'Please enter your ' + method + '.');
+    speak("Wrong attempt");
+    return;
+  }
+  try {
+    const res = await fetch('/auth', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({method, value})
+    });
+    const j = await res.json();
+    if(j.ok) {
+      activeToken = j.token;
+      showControls();
+    }
+    else {
+      setStatus(method + 'Msg', j.error || "Authentication failed");
+      speak("Wrong attempt");
+    }
+  } catch(e) {
+    setStatus(method + 'Msg', 'Network error occurred');
+    speak("Wrong attempt");
+  }
+}
+
+// Request OTP
+async function requestOtp() {
+  try {
+    const res = await fetch('/request_otp', {method:'POST'});
+    const j = await res.json();
+    setStatus('otpMsg', j.message || JSON.stringify(j));
+  } catch(e) {
+    setStatus('otpMsg', 'Network error occurred.');
+  }
+}
+
+// Show controls after login
+function showControls() {
+  $('controls').style.display = 'block';
+  ['otp', 'face', 'voice', 'qr'].forEach(id => {
+    const elem = $(id);
+    if(elem) elem.style.display = 'none';
+  });
+  document.querySelector('.tabs').style.display = 'none';
+  stopFaceVideo();
+  pollStatus();
+}
+async function deviceAction(action) {
+  try {
+    const res = await fetch('/control', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer ' + activeToken },
+      body: JSON.stringify({action})
+    });
+    const j = await res.json();
+    if(j.ok){
+      setStatus('controlMsg', 'Device: ' + (j.device?.status || 'Updated'));
+      setTimeout(pollStatus, 600);
+    } else {
+      setStatus('controlMsg', 'Error: ' + (j.error || ''));
+    }
+  } catch(e) {
+    setStatus('controlMsg', 'Network error occurred');
+  }
+}
+// Face recognition logic
+const videoElement = $('face-video'); let stream = null;
+async function startFaceVideo() {
+  if(stream) return;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+    videoElement.srcObject = stream;
+  } catch(e) {
+    setStatus('faceMsg', 'Camera access denied or not available.');
+  }
+}
+function stopFaceVideo() {
+  if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; videoElement.srcObject = null; }
+  setStatus('faceMsg', '');
+}
+$('faceLoginBtn').addEventListener('click', async () => {
+  if(!stream) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = videoElement.videoWidth;
+  canvas.height = videoElement.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/png');
+  setStatus('faceMsg', 'Processing...');
+  try {
+    const res = await fetch('/face-login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({image: dataUrl})
+    });
+    const j = await res.json();
+    if(j.ok) {
+      activeToken = j.token;
+      setStatus('faceMsg', j.message || 'Face recognized! Logged in.');
+      showControls();
+    } else {
+      setStatus('faceMsg', j.error || 'Face not recognized.');
+      speak("Wrong attempt");
+    }
+  } catch(e) {
+    setStatus('faceMsg', 'Network error occurred.');
+    speak("Wrong attempt ,Try again");
+  }
+});
+
+// Voice phrase authentication
+const voiceBtn = $('voicePhraseBtn');
+const voiceStatus = $('voicePhraseStatus');
+let recognition = null, recognizing = false, speechLastPhrase = "";
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onstart = () => { recognizing = true; speechLastPhrase = ""; voiceStatus.textContent = 'Listening... Please speak your secret phrase.'; voiceBtn.disabled = true; };
+  recognition.onerror = event => { recognizing = false; voiceStatus.textContent = 'Error occurred: ' + event.error; voiceBtn.disabled = false; };
+  recognition.onend = () => { recognizing = false; voiceBtn.disabled = false; if(voiceStatus.textContent === 'Listening... Please speak your secret phrase.') { voiceStatus.textContent = 'No speech detected. Try again.'; } };
+  recognition.onresult = event => {
+    const transcript = event.results[0][0].transcript.trim(); speechLastPhrase = transcript;
+    voiceStatus.textContent = `You said: "${transcript}". Verifying...`;
+    auth('voice');
+  };
+} else {
+  voiceStatus.textContent = 'Speech recognition not supported in this browser.';
+  voiceBtn.disabled = true;
+}
+voiceBtn.addEventListener('click', () => { if (recognition && !recognizing) recognition.start(); });
+
+ 
+
+let statusInterval = null;
+function pollStatus() {
+  fetch('/status')
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok && data.device && data.device.status) {
+        document.getElementById('doorStatus').textContent =
+          data.device.status.charAt(0).toUpperCase() + data.device.status.slice(1);
+      } else {
+        document.getElementById('doorStatus').textContent = "Unknown";
+      }
+    })
+    .catch(() => {
+      document.getElementById('doorStatus').textContent = "Unknown";
+    });
+}
+
+if (statusInterval) clearInterval(statusInterval);
+statusInterval = setInterval(pollStatus, 2000);
+</script>
+</body>
+</html>

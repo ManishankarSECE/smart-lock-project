@@ -1,0 +1,7 @@
+Flask==2.3.2
+gunicorn
+deepface
+opencv-python
+numpy
+requests==2.31.0
+python-dotenv==1.0.0

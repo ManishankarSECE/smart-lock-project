@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Smart Lock — Custom Pattern Lock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Poppins', Arial, sans-serif;
+      background: radial-gradient(circle at top right, #e0f2fe 0%, #bae6fd 100%);
+      color: #1e40af;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+    }
+    .container { max-width: 600px; width: 100%; background: linear-gradient(145deg, #f9fbff, #e3e8ff);
+      border-radius: 20px; padding: 40px; border: 2px solid #3b82f6;
+      box-shadow: 0 4px 15px rgba(59,130,246,0.35), 0 10px 20px rgba(16,64,153,0.2), inset 0 1px 4px rgba(255,255,255,0.85);}
+    h2 { text-align: center; margin-bottom: 24px; font-weight: 700; font-size: 2.4rem; color: #1e40af; }
+    .tabs {
+      display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;
+      border-radius: 16px; background: #e0ecff; box-shadow: inset 0 0 12px #a7c3ff;
+      user-select: none;
+    }
+    .tab {
+      padding: 14px 24px; font-weight: 700; font-size: 1.05rem; cursor: pointer;
+      border-radius: 16px; color: #254eda; background: transparent; border: 2.5px solid transparent;
+      transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .tab.active {
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      color: #fff; border-color: #3b82f6;
+      box-shadow: 0 6px 16px rgba(59,130,246,0.6), 0 0 6px #3b82f6cc;
+    }
+    .tab:hover:not(.active) {
+      background: #dbe8ff; border-color: #a2c1ff; color: #1e3a8a;
+      box-shadow: 0 3px 8px rgba(61, 93, 209, 0.4);
+    }
+    .tabpane {
+      display: none;
+      animation: fadeIn 0.3s ease forwards;
+    }
+    .tabpane.active {
+      display: block;
+    }
+    /* Pattern lock styles */
+    .pattern-area {
+      position: relative; margin: 20px auto; width: 240px; height: 240px;
+      background: #f0f4ff; border-radius: 24px; touch-action: none; user-select: none;
+      box-shadow: inset 0 0 16px #a0b8f8;
+    }
+    .pattern-dot {
+      position: absolute; width: 34px; height: 34px; border-radius: 50%;
+      background: #e0f2fe; border: 3px solid #3b82f6;
+      box-shadow: 0 1px 8px #60a5fa22;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      left: 0; top: 0; transform: translate(-50%, -50%);
+      pointer-events: all;
+      user-select: none;
+      z-index: 2;
+    }
+    .pattern-dot.active {
+      background: #3b82f6; border-color: #1e40af;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+    }
+    svg.pattern-lines {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      z-index: 1; pointer-events: none;
+    }
+    .status {
+      text-align: center; margin-top: 16px; font-weight: 700; color: #2563eb;
+      min-height: 26px; user-select: text; letter-spacing: 0.03em; text-shadow: 0 0 3px rgba(37, 99, 235, 0.3);
+    }
+    button {
+      margin: 10px auto 0 auto; display: block;
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      color: white; font-weight: 700; border:none; border-radius: 18px;
+      font-size: 1.15rem; padding: 14px 32px; cursor: pointer;
+      box-shadow: 0 8px 15px rgba(43,108,255,0.35);
+      user-select: none;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      box-shadow: 0 12px 26px rgba(43,108,255,0.55);
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Smart Lock Authentication Dashboard">
+    <h2>🔒 Smart Lock</h2>
+    <p class="subtitle" style="text-align:center; font-weight:600; color:#2563ebcc; margin-bottom:35px;">Secure your device with multiple authentication methods</p>
+
+    <nav class="tabs" role="tablist" aria-label="Authentication methods">
+      <div class="tab active" role="tab" aria-selected="true" tabindex="0" data-tab="password">Password</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="pin">PIN</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="otp">OTP</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="pattern">Pattern Lock</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="face">Face</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="voice">Voice</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="qr">QR Code</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="-1" data-tab="centerpattern">Center Pattern</div>
+    </nav>
+
+    <!-- Password -->
+    <section id="password" class="tabpane active" role="tabpanel" tabindex="0" aria-label="Password Authentication">
+      <input id="passwordInput" type="password" aria-label="Enter password" placeholder="Enter your password" autocomplete="current-password"/>
+      <button onclick="auth('password')">Login</button>
+      <div id="passwordMsg" class="status" aria-live="polite"></div>
+    </section>
+
+    <!-- PIN -->
+    <section id="pin" class="tabpane" role="tabpanel" tabindex="0" aria-label="PIN Authentication">
+      <input id="pinInput" type="password" aria-label="Enter PIN" placeholder="Enter your PIN" autocomplete="one-time-code"/>
+      <button onclick="auth('pin')">Login</button>
+      <div id="pinMsg" class="status" aria-live="polite"></div>
+    </section>
+
+    <!-- OTP -->
+    <section id="otp" class="tabpane" role="tabpanel" tabindex="0" aria-label="OTP Authentication">
+      <button onclick="requestOtp()">Request OTP</button>
+      <input id="otpInput" type="text" aria-label="Enter OTP" placeholder="Enter the OTP sent to your email" autocomplete="one-time-code" inputmode="numeric"/>
+      <button onclick="auth('otp')">Verify</button>
+      <div id="otpMsg" class="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Pattern Lock (PatternLock.js style) -->
+    <section id="pattern" class="tabpane" role="tabpanel" tabindex="0" aria-label="Pattern lock authentication" style="text-align:center;">
+      <div id="patternContainer" style="width:210px; height:210px; margin: 0 auto;"></div>
+      <button onclick="submitPattern()">Login with Pattern</button>
+      <div id="patternMsg" class="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Face -->
+    <section id="face" class="tabpane" role="tabpanel" tabindex="0" aria-label="Face recognition authentication" style="text-align:center;">
+      <video id="face-video" autoplay muted playsinline style="border-radius:14px; width:320px; height:240px; background:#000; box-shadow:0 4px 10px rgba(59,130,246,0.5); margin: 0 auto 20px;"></video>
+      <button id="faceLoginBtn" style="max-width:300px; margin: 0 auto 12px auto;" aria-describedby="faceMsg">Login with Face</button>
+      <div id="faceMsg" class="status" aria-live="polite" style="margin-top: 12px;"></div>
+    </section>
+
+    <!-- Voice Phrase -->
+    <section id="voice" class="tabpane" role="tabpanel" tabindex="0" aria-label="Voice phrase authentication" style="text-align:center;">
+      <button id="voicePhraseBtn" style="max-width:300px; margin: 0 auto 12px auto;">🎤 Speak Your Secret Phrase</button>
+      <div id="voicePhraseStatus" class="status" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
+    <!-- QR Code -->
+    <section id="qr" class="tabpane" role="tabpanel" tabindex="0" aria-label="QR code authentication" style="text-align:center;">
+      <input id="qrName" type="text" aria-label="Enter your name" placeholder="Your Name" autocomplete="name" required style="margin-bottom: 10px;"/>
+      <input id="qrPhone" type="tel" aria-label="Enter your phone number" placeholder="Phone Number" autocomplete="tel" required style="margin-bottom: 20px;"/>
+      <button onclick="generateQrCode()" style="max-width:300px; margin: 0 auto 12px auto;">Generate QR Code</button>
+      <div id="qrMsg" class="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Center-to-center Custom Pattern -->
+    <section id="centerpattern" class="tabpane" role="tabpanel" tabindex="0" aria-label="Center-to-center pattern lock" style="text-align:center;">
+      <div class="pattern-area" id="centerPatternArea" tabindex="0" aria-label="Draw your pattern" style="margin: 0 auto;"></div>
+      <svg class="pattern-lines" id="centerPatternLines"></svg>
+      <button id="centerPatReset" style="max-width:300px; margin: 20px auto 0;">Reset</button>
+      <button id="centerPatSubmit" style="max-width:300px; margin: 20px auto 12px;">Login with Center Pattern</button>
+      <div id="centerPatternMsg" class="status"></div>
+    </section>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/patternlock/0.6.1/patternLock.min.js"></script>
+  <script>
+    // Helper for element by ID
+    const $ = id => document.getElementById(id);
+    const setStatus = (id, msg) => { const el = $(id); if(el) el.textContent = msg; };
+
+    // Tab system
+    const tabs = document.querySelectorAll('.tab');
+    const tabpanes = document.querySelectorAll('.tabpane');
+    tabs.forEach((tab,i) => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', e => {
+        let newIndex = i;
+        if(e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          newIndex = (i+1) % tabs.length;
+          activateTab(tabs[newIndex]);
+          tabs[newIndex].focus();
+        }
+        if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          newIndex = (i-1+tabs.length) % tabs.length;
+          activateTab(tabs[newIndex]);
+          tabs[newIndex].focus();
+        }
+      });
+    });
+    function activateTab(tab) {
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+        t.tabIndex = -1;
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      tab.tabIndex = 0;
+      const selected = tab.dataset.tab;
+      tabpanes.forEach(p => p.classList.remove('active'));
+      $(selected).classList.add('active');
+      ['password','pin','otp','pattern','face','voice','qr','centerpattern'].forEach(m => {
+        const msg = $(m+'Msg') || $(m+'Status');
+        if(msg) msg.textContent = '';
+      });
+
+      if(selected==='pattern') resetPatternLock();
+      if(selected==='face') startFaceVideo(); else stopFaceVideo();
+      if(selected==='centerpattern') centerResetPattern();
+    }
+
+    // ========== Password / PIN / OTP / Voice / Pattern Authentication ==========
+    let activeToken = null;
+
+    // Legacy PatternLock.js pattern
+    let userPattern = '';
+    let patternLock = null;
+    function resetPatternLock() {
+      userPattern = '';
+      if(patternLock) patternLock.reset();
+      setStatus('patternMsg','');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if ($('patternContainer')) {
+        patternLock = new PatternLock("#patternContainer", {
+          allowRepeat: false,
+          onDraw: function(p) {
+            userPattern = p;
+            setStatus('patternMsg', `Pattern drawn: ${p}`);
+          }
+        });
+      }
+    });
+    function submitPattern() {
+      if(!userPattern) {
+        setStatus('patternMsg','Please draw a pattern.');
+        return;
+      }
+      auth('pattern');
+    }
+
+    async function auth(method) {
+      let value = "";
+      if(method === 'password') value = $('passwordInput').value.trim();
+      if(method === 'pin') value = $('pinInput').value.trim();
+      if(method === 'otp') value = $('otpInput').value.trim();
+      if(method === 'voice') value = speechLastPhrase?.trim() || "";
+      if(method === 'pattern') value = userPattern;
+      if(method === 'centerpattern') value = centerPattern.map(x=>x+1).join('-');
+      if(!value) { setStatus(method + 'Msg', `Please enter your ${method === 'pattern' ? 'pattern' : method}.`); return; }
+      try {
+        const res = await fetch('/auth', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({method, value})
+        });
+        const j = await res.json();
+        if(j.ok){
+          activeToken = j.token;
+          showControls();
+        }
+        else {
+          setStatus(method + 'Msg', j.error || "Authentication failed");
+        }
+      } catch(e) { setStatus(method + 'Msg', 'Network error occurred'); }
+    }
+
+    // Request OTP
+    async function requestOtp() {
+      try {
+        const res = await fetch('/request_otp', {method:'POST'});
+        const j = await res.json();
+        setStatus('otpMsg', j.message || JSON.stringify(j));
+      } catch(e) { setStatus('otpMsg', 'Network error occurred.'); }
+    }
+
+
+    // ========== Controls ===========
+    function showControls() {
+      $('controls').style.display = 'block';
+      ['password','pin','otp','pattern','face','voice','qr','centerpattern'].forEach(id => {
+        const e=$(id);
+        if(e) e.style.display='none';
+      });
+      document.querySelector('.tabs').style.display = 'none';
+      stopFaceVideo();
+      pollStatus();
+      if(statusInterval) clearInterval(statusInterval);
+      statusInterval = setInterval(pollStatus, 2000);
+    }
+    async function deviceAction(action) {
+      try {
+        const res = await fetch('/control', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+activeToken},
+          body: JSON.stringify({action})
+        });
+        const j = await res.json();
+        if(j.ok) {
+          setStatus('controlMsg', 'Device: '+(j.device?.status || 'Updated'));
+          setTimeout(pollStatus, 600);
+        } else {
+          setStatus('controlMsg', 'Error: '+(j.error || ''));
+        }
+      } catch(e) {
+        setStatus('controlMsg', 'Network error occurred');
+      }
+    }
+
+    // ========== Face Recognition ==========
+    const videoElement = $('face-video');
+    let stream = null;
+    async function startFaceVideo() {
+      if(stream) return;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+        videoElement.srcObject = stream;
+      } catch(e) { setStatus('faceMsg', 'Camera access denied or not available.'); }
+    }
+    function stopFaceVideo() {
+      if(stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; videoElement.srcObject = null; }
+      setStatus('faceMsg','');
+    }
+    $('faceLoginBtn').addEventListener('click', async () => {
+      if(!stream) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      setStatus('faceMsg', 'Processing...');
+      try {
+        const res = await fetch('/face-login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({image: dataUrl})
+        });
+        const j = await res.json();
+        if(j.ok){
+          activeToken = j.token;
+          setStatus('faceMsg', j.message || 'Face recognized! Logged in.');
+          showControls();
+        } else {
+          setStatus('faceMsg', j.error || 'Face not recognized.');
+        }
+      } catch(e) {setStatus('faceMsg', 'Network error occurred.');}
+    });
+
+    // ========== Voice Authentication ==========
+    const voiceBtn = $('voicePhraseBtn');
+    const voiceStatus = $('voicePhraseStatus');
+    let recognition = null, recognizing=false, speechLastPhrase = "";
+    if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => {recognizing=true; speechLastPhrase = ""; voiceStatus.textContent = 'Listening... Please speak your secret phrase.'; voiceBtn.disabled = true; };
+      recognition.onerror = e => { recognizing=false; voiceStatus.textContent = 'Error: '+e.error; voiceBtn.disabled = false; };
+      recognition.onend = () => { recognizing=false; voiceBtn.disabled=false; if(voiceStatus.textContent === 'Listening... Please speak your secret phrase.') voiceStatus.textContent = 'No speech detected. Try again.'; };
+      recognition.onresult = event => {
+        const transcript = event.results[0].transcript.trim();
+        speechLastPhrase = transcript;
+        voiceStatus.textContent = `You said: "${transcript}". Verifying...`;
+        if('speechSynthesis' in window){
+          const utter = new SpeechSynthesisUtterance(`You said: ${transcript}`);
+          utter.lang = 'en-US';
+          window.speechSynthesis.speak(utter);
+        }
+        auth('voice');
+      };
+    } else {
+      voiceStatus.textContent = 'Speech recognition not supported in this browser.';
+      voiceBtn.disabled = true;
+    }
+    voiceBtn.addEventListener('click', () => { if(recognition && !recognizing) recognition.start(); });
+
+    // ========== QR Code ==========
+    async function generateQrCode() {
+      const name = $('qrName').value.trim();
+      const phone = $('qrPhone').value.trim();
+      if(!name || !phone){
+        setStatus('qrMsg','Please enter your name and phone number.');
+        return;
+      }
+      setStatus('qrMsg','Generating QR Code on the device...');
+      try{
+        const res = await fetch('/request_qr',{
+          method:'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({name, phone})
+        });
+        const j = await res.json();
+        if(j.ok){
+          setStatus('qrMsg','QR Code is ready on the device! Scan with your mobile.');
+        } else {
+          setStatus('qrMsg', j.error || 'Failed to generate QR code.');
+        }
+      } catch(e){
+        setStatus('qrMsg','Network error occurred when requesting QR code.');
+      }
+    }
+
+    // ========== Poll device status ==========
+    let statusInterval = null;
+    function pollStatus(){
+      fetch('/status')
+        .then(r => r.json())
+        .then(data => {
+          if(data.ok && data.device && data.device.status){
+            $('doorStatus').textContent = data.device.status.charAt(0).toUpperCase() + data.device.status.slice(1);
+          } else {
+            $('doorStatus').textContent = "Unknown";
+          }
+        }).catch(() => {
+          $('doorStatus').textContent = "Unknown";
+        });
+    }
+
+    // =================
+    // ===== Custom center-to-center pattern lock code =====
+
+    const centerPatternArea = $('centerPatternArea');
+    const centerPatternLines = $('centerPatternLines');
+    let centerDots = [];
+    let centerPattern = [];
+    let centerDrawing = false;
+    let centerLastIdx = null;
+
+    function centerDotXY(idx){
+      const off = 37, gridGap = 83, gridCnt = 3;
+      return {
+        x: off + gridGap * (idx % gridCnt),
+        y: off + gridGap * Math.floor(idx / gridCnt)
+      };
+    }
+
+    function centerResetPattern(){
+      centerPattern = [];
+      centerLastIdx=null;
+      centerDots.forEach(dot => dot.classList.remove('active'));
+      drawCenterLines();
+      setStatus('centerPatternMsg','');
+    }
+
+    function drawCenterLines(){
+      centerPatternLines.innerHTML = '';
+      if(centerPattern.length < 2) return;
+      const pts = centerPattern.map(centerDotXY);
+      for(let i=0; i<pts.length-1; i++){
+        const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+        line.setAttribute("x1", pts[i].x);
+        line.setAttribute("y1", pts[i].y);
+        line.setAttribute("x2", pts[i+1].x);
+        line.setAttribute("y2", pts[i+1].y);
+        line.setAttribute("stroke", "#2563eb");
+        line.setAttribute("stroke-width", "6");
+        line.setAttribute("stroke-linecap", "round");
+        centerPatternLines.appendChild(line);
+      }
+    }
+
+    function centerActivateDot(idx){
+      if (!centerPattern.includes(idx)) {
+        centerPattern.push(idx);
+        centerDots[idx].classList.add('active');
+        setStatus('centerPatternMsg','');
+      }
+    }
+
+    function getDotIdxFromPos(x,y){
+      for(let i=0; i<centerDots.length; i++){
+        const rect = centerDots[i].getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dist = Math.sqrt((x-cx)**2+(y-cy)**2);
+        if(dist < 30) return i;
+      }
+      return null;
+    }
+
+    function centerPointerDown(e){
+      e.preventDefault();
+      centerDrawing = true;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const y = e.touches ? e.touches.clientY : e.clientY;
+      const idx = getDotIdxFromPos(x,y);
+      if(idx !== null){
+        centerActivateDot(idx);
+        centerLastIdx = idx;
+      }
+    }
+    function centerPointerMove(e){
+      if (!centerDrawing) return;
+      const x = e.touches ? e.touches.clientX : e.clientX;
+      const y = e.touches ? e.touches.clientY : e.clientY;
+      const idx = getDotIdxFromPos(x,y);
+      if(idx !== null && idx !== centerLastIdx && !centerPattern.includes(idx)){
+        centerActivateDot(idx);
+        centerLastIdx = idx;
+      }
+      drawCenterLines();
+    }
+    function centerPointerUp(e){
+      if(!centerDrawing) return;
+      centerDrawing = false;
+      drawCenterLines();
+    }
+
+    function centerSetup(){
+      // Clean previous dots if any
+      while(centerPatternArea.firstChild) centerPatternArea.removeChild(centerPatternArea.firstChild);
+      // Create dots
+      centerDots = [];
+      for(let i=0;i<9;i++){
+        const coord = centerDotXY(i);
+        const dot = document.createElement('div');
+        dot.className = 'pattern-dot';
+        dot.style.left = coord.x + 'px';
+        dot.style.top = coord.y + 'px';
+        centerPatternArea.appendChild(dot);
+        centerDots.push(dot);
+      }
+      // Setup listeners
+      centerPatternArea.addEventListener('mousedown', centerPointerDown);
+      document.addEventListener('mousemove', centerPointerMove);
+      document.addEventListener('mouseup', centerPointerUp);
+      centerPatternArea.addEventListener('touchstart', centerPointerDown);
+      document.addEventListener('touchmove', centerPointerMove, {passive: false});
+      document.addEventListener('touchend', centerPointerUp);
+
+      centerPatternLines.setAttribute("width", centerPatternArea.offsetWidth);
+      centerPatternLines.setAttribute("height", centerPatternArea.offsetHeight);
+
+      $('centerPatReset').onclick = centerResetPattern;
+      $('centerPatSubmit').onclick = () => {
+        if(centerPattern.length < 4){
+          setStatus('centerPatternMsg', 'Pattern must be at least 4 dots!');
+          return;
+        }
+        const patStr = centerPattern.map(x => x+1).join('-');
+        setStatus('centerPatternMsg', 'Checking pattern...');
+        fetch('/auth', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({method: 'centerpattern', value: patStr})
+        }).then(r=>r.json()).then(j=>{
+          if(j.ok){
+            activeToken = j.token;
+            showControls();
+          } else {
+            setStatus('centerPatternMsg', j.error || 'Authentication failed');
+          }
+        }).catch(()=>{
+          setStatus('centerPatternMsg', 'Network error');
+        });
+      };
+      centerResetPattern();
+    }
+
+
+    // Initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      activateTab(tabs[0]);  // Activate first tab
+      centerSetup();
+    });
+
+  </script>
+</body>
+</html>
