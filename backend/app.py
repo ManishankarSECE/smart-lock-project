@@ -47,7 +47,7 @@ FACE_MODEL = os.getenv("FACE_MODEL", "Facenet")
 DETECTOR_BACKEND = os.getenv("DETECTOR_BACKEND", "mtcnn")
 FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.40"))
 
-NODEMCU_IP = os.getenv("NODEMCU_IP", "10.203.163.205")
+NODEMCU_IP = os.getenv("NODEMCU_IP", "10.191.240.205")
 NODEMCU_QR_ENDPOINT = f"http://{NODEMCU_IP}/display_qr"
 
 # In-memory runtime
@@ -456,7 +456,7 @@ def request_qr():
         "timestamp": time.time()
     }
 
-    base_url = "http://10.203.163.227:5000"  # Replace with your actual IP/domain
+    base_url = "http://10.191.240.227:5000"  # Replace with your actual IP/domain
 
     approve_link = f"{base_url}/qr/approve?token={approval_token}"
     deny_link = f"{base_url}/qr/deny?token={approval_token}"
@@ -493,7 +493,7 @@ def qr_approve():
     qr_token = gen_short_token()
     qr_sessions[qr_token] = time.time() + QR_SESSION_TTL
 
-    base_url = "http://10.203.163.227:5000"
+    base_url = "http://10.191.240.227:5000"
     qr_url = f"{base_url}/mc/{qr_token}"
 
     device_resp = nodemcu_qr_display(qr_url, req["name"], req["phone"])
